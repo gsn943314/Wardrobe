@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { FilterBar } from '@/components/FilterBar';
 import { ItemCard } from '@/components/ItemCard';
@@ -11,6 +11,7 @@ import { SLOTS, slotOf, type SlotId } from '@/lib/categories';
 import { EMPTY_FILTER, filterItems, type ItemFilter } from '@/lib/filter';
 import type { Item, Outfit, OutfitSlots } from '@/lib/types';
 import { useWardrobe } from '@/store/WardrobeStore';
+import { showDialog } from '@/components/Dialog';
 
 type Draft = Pick<Outfit, 'name' | 'slots' | 'accessories'>;
 
@@ -67,7 +68,7 @@ export default function OutfitBuilder() {
   const save = () => {
     const o = persist();
     if (!existing) router.replace(`/outfit/${o.id}`);
-    else Alert.alert('已儲存');
+    else showDialog('已儲存');
   };
 
   const tryOn = () => {
@@ -77,7 +78,7 @@ export default function OutfitBuilder() {
 
   const remove = () =>
     existing &&
-    Alert.alert('刪除這套搭配？', '試穿結果也會一起刪除。', [
+    showDialog('刪除這套搭配？', '試穿結果也會一起刪除。', [
       { text: '取消', style: 'cancel' },
       {
         text: '刪除',

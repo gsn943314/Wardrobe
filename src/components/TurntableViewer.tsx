@@ -1,12 +1,11 @@
 import { Image } from 'expo-image';
-import type { VideoThumbnail } from 'expo-video';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import type { FramesState } from '@/lib/useVideoFrames';
+import type { FrameSource, FramesState } from '@/lib/frameTypes';
 import { colors } from './theme';
 
 const PX_PER_FRAME = 7;
@@ -69,6 +68,7 @@ export function TurntableViewer({
 
   const pan = Gesture.Pan()
     .maxPointers(1)
+    .minDistance(4)
     .onBegin(() => {
       interacting.set(true);
       idleMs.set(0);
@@ -125,6 +125,7 @@ export function TurntableViewer({
 
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
+    .maxDistance(10)
     .onEnd(() => {
       idleMs.set(0);
       scale.set(withTiming(scale.get() > 1.01 ? 1 : 2.5));
@@ -132,16 +133,18 @@ export function TurntableViewer({
       ty.set(withTiming(0));
     });
 
-  const gesture = Gesture.Simultaneous(pinch, Gesture.Exclusive(doubleTap, pan));
+  // Run side by side: waiting for the double-tap to fail would delay every drag by ~0.5 s.
+  const gesture = Gesture.Simultaneous(pinch, pan, doubleTap);
 
   const animated = useAnimatedStyle(() => ({
     transform: [{ translateX: tx.get() }, { translateY: ty.get() }, { scale: scale.get() }],
   }));
 
+  // The image layer below uses pointerEvents="none" so touches reach the stage (also stops native image-drag on web).
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
 
   const compareReady = compare?.status === 'ready' ? compare : undefined;
-  const source: VideoThumbnail | undefined =
+  const source: FrameSource | undefined =
     showCompare && compareReady
       ? compareReady.frames[Math.min(compareReady.frames.length - 1, Math.round((index / Math.max(count, 1)) * compareReady.frames.length))]
       : ready?.frames[index % Math.max(count, 1)];
@@ -150,7 +153,7 @@ export function TurntableViewer({
     <GestureDetector gesture={gesture}>
       <View style={[styles.stage, { aspectRatio }]} onLayout={onLayout} collapsable={false}>
         {source ? (
-          <Animated.View style={[StyleSheet.absoluteFill, animated]}>
+          <Animated.View style={[StyleSheet.absoluteFill, animated]} pointerEvents="none">
             <Image source={source} style={StyleSheet.absoluteFill} contentFit="contain" transition={0} />
           </Animated.View>
         ) : (

@@ -55,7 +55,7 @@ export function ZoomableImage({ uri, style }: { uri: string; style?: ViewStyle }
   return (
     <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
       <View style={[styles.wrap, style]} collapsable={false}>
-        <Animated.View style={[StyleSheet.absoluteFill, animated]}>
+        <Animated.View style={[StyleSheet.absoluteFill, animated]} pointerEvents="none">
           <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="contain" />
         </Animated.View>
       </View>

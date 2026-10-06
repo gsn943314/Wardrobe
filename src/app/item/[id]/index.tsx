@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, FlatList, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { FlatList, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { colors, radius, space } from '@/components/theme';
 import { Button, Chip, Empty, SectionTitle } from '@/components/ui';
@@ -9,6 +9,7 @@ import { ZoomableImage } from '@/components/ZoomableImage';
 import { CATEGORY_BY_ID } from '@/lib/categories';
 import { hostOf } from '@/lib/productParser';
 import { useWardrobe } from '@/store/WardrobeStore';
+import { showDialog } from '@/components/Dialog';
 
 /** The item "blog" page: photos, description, tags and the link back to the store. */
 export default function ItemScreen() {
@@ -24,7 +25,7 @@ export default function ItemScreen() {
   const usedIn = outfits.filter((o) => Object.values(o.slots).includes(item.id) || o.accessories.includes(item.id));
 
   const remove = () =>
-    Alert.alert('刪除這件單品？', '相關搭配中的這件也會被移除。', [
+    showDialog('刪除這件單品？', '相關搭配中的這件也會被移除。', [
       { text: '取消', style: 'cancel' },
       {
         text: '刪除',

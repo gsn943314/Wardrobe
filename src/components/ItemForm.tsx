@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CATEGORIES, seasonSuggestions, type CategoryId } from '@/lib/categories';
 import { saveItemImages } from '@/lib/files';
@@ -10,6 +10,7 @@ import type { Item } from '@/lib/types';
 import { useWardrobe } from '@/store/WardrobeStore';
 import { colors, radius, space } from './theme';
 import { Button, Chip, ChipRow, Field, SectionTitle } from './ui';
+import { showDialog } from '@/components/Dialog';
 
 export type ItemDraft = Omit<Item, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: number };
 
@@ -64,8 +65,8 @@ export function ItemForm({ initial, onSaved }: { initial: ItemDraft; onSaved: (i
   };
 
   const save = async () => {
-    if (!d.title.trim()) return Alert.alert('請輸入名稱');
-    if (!d.images.length) return Alert.alert('至少需要一張圖片', '可以從相簿加入截圖。');
+    if (!d.title.trim()) return showDialog('請輸入名稱');
+    if (!d.images.length) return showDialog('至少需要一張圖片', '可以從相簿加入截圖。');
     setSaving(true);
     try {
       const id = d.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

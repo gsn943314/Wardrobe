@@ -42,7 +42,8 @@
     "android": "expo start --android",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/lib/__tests__/*.test.ts",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "preview:web": "expo export --platform web --output-dir dist-web && node scripts/build-web-preview.mjs dist-web dist-web/wardrobe-preview.html"
   },
   "private": true
 }

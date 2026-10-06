@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, space } from '@/components/theme';
 import { TurntableViewer } from '@/components/TurntableViewer';
@@ -10,6 +10,7 @@ import { deleteFile, importVideo } from '@/lib/files';
 import { getDecartKey, setDecartKey } from '@/lib/secrets';
 import { useVideoFrames } from '@/lib/useVideoFrames';
 import { useWardrobe } from '@/store/WardrobeStore';
+import { showDialog } from '@/components/Dialog';
 
 export default function MeScreen() {
   const { profile, setProfile, items, outfits } = useWardrobe();
@@ -25,7 +26,7 @@ export default function MeScreen() {
 
   const applyVideo = (asset: ImagePicker.ImagePickerAsset) => {
     const seconds = (asset.duration ?? 0) / 1000;
-    if (seconds > 15) Alert.alert('影片有點長', `這支 ${seconds.toFixed(0)} 秒。試穿按秒計費，建議 6–10 秒、轉一圈就好。`);
+    if (seconds > 15) showDialog('影片有點長', `這支 ${seconds.toFixed(0)} 秒。試穿按秒計費，建議 6–10 秒、轉一圈就好。`);
     const uri = importVideo(asset.uri, 'base');
     // Older try-on results keep using the previous video for before/after, so only delete it when unused.
     const old = profile.baseVideoUri;
@@ -34,8 +35,11 @@ export default function MeScreen() {
   };
 
   const record = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return Alert.alert('需要相機權限才能錄影');
+    // On web the file input hands recording to the phone's own camera app, no permission prompt needed.
+    if (Platform.OS !== 'web') {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) return showDialog('需要相機權限才能錄影');
+    }
     const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'], videoMaxDuration: 12, quality: 1 });
     if (!res.canceled) applyVideo(res.assets[0]);
   };
@@ -49,7 +53,7 @@ export default function MeScreen() {
     await setDecartKey(key);
     setHasKey(!!key.trim());
     setKey('');
-    Alert.alert(key.trim() ? 'API Key 已儲存在手機的安全儲存區' : '已清除 API Key');
+    showDialog(key.trim() ? 'API Key 已儲存在手機的安全儲存區' : '已清除 API Key');
   };
 
   const num = (s: string) => {

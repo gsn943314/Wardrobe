@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview';
 
@@ -9,6 +9,7 @@ import { Chip, ChipRow } from '@/components/ui';
 import { setDraft } from '@/lib/draft';
 import { enrichProduct } from '@/lib/productParser';
 import { EXTRACT_SCRIPT, productFromExtract, type ExtractMessage } from '@/lib/webExtractor';
+import { showDialog } from '@/components/Dialog';
 
 const SHOPS = [
   { name: 'UNIQLO', url: 'https://www.uniqlo.com/tw/zh_TW/' },
@@ -64,14 +65,14 @@ export default function BrowseScreen() {
     }
     if (msg.type === 'wardrobe-extract-error') {
       setCapturing(false);
-      Alert.alert('讀取這頁失敗', (msg as { message?: string }).message ?? '');
+      showDialog('讀取這頁失敗', (msg as { message?: string }).message ?? '');
       return;
     }
     if (msg.type !== 'wardrobe-extract') return;
     const product = await enrichProduct(productFromExtract(msg as ExtractMessage));
     setCapturing(false);
     if (!product.images.length) {
-      Alert.alert('這頁找不到商品圖片', '請先打開單一商品頁，等圖片載入後再按一次。');
+      showDialog('這頁找不到商品圖片', '請先打開單一商品頁，等圖片載入後再按一次。');
       return;
     }
     setDraft(product);

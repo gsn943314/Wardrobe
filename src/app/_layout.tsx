@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { DialogHost } from '@/components/Dialog';
 import { colors } from '@/components/theme';
 import { WardrobeProvider, useWardrobe } from '@/store/WardrobeStore';
 
@@ -41,6 +42,7 @@ export default function RootLayout() {
       <WardrobeProvider>
         <StatusBar style="dark" />
         <Screens />
+        <DialogHost />
       </WardrobeProvider>
     </GestureHandlerRootView>
   );

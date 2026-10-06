@@ -89,6 +89,18 @@ src/
 docs/virtual-try-on-analysis.md   三個參考案例與模型比較分析
 ```
 
+## 網頁預覽版（不用手機環境也能試）
+
+```sh
+npm run preview:web   # 產生 dist-web/wardrobe-preview.html，單一檔案，瀏覽器直接打開
+```
+
+網頁版和 Android 版的差別：
+- 「逛街」分頁的內建瀏覽器無法在網頁上嵌入其他網站，改成說明頁。請用「範例單品」或相簿照片新增。
+- 選的影片只在目前分頁有效，重新整理後要重選。
+- AI 試穿只有示範模式。
+- 資料存在瀏覽器裡（localStorage）。
+
 ## 開發指令
 
 ```sh

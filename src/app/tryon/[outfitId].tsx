@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { OutfitBoard } from '@/components/OutfitBoard';
 import { colors, radius, space } from '@/components/theme';
@@ -12,6 +12,7 @@ import { runOutfitTryOn, type PassProgress } from '@/lib/tryon/run';
 import type { TryOnResult } from '@/lib/types';
 import { useVideoFrames } from '@/lib/useVideoFrames';
 import { useWardrobe } from '@/store/WardrobeStore';
+import { showDialog } from '@/components/Dialog';
 
 export default function TryOnScreen() {
   const { outfitId, resultId } = useLocalSearchParams<{ outfitId: string; resultId?: string }>();
@@ -59,7 +60,7 @@ function RunView({ outfitId: id }: { outfitId: string }) {
       addResult(o.id, r);
       router.replace({ pathname: '/tryon/[outfitId]', params: { outfitId: o.id, resultId: r.id } });
     } catch (e) {
-      Alert.alert('試穿失敗', (e as Error).message);
+      showDialog('試穿失敗', (e as Error).message);
     } finally {
       setRunning(false);
     }
@@ -130,7 +131,7 @@ function ResultView({ outfitId: id, result: r, allResults }: { outfitId: string;
   const o = getOutfit(id)!;
 
   const remove = () =>
-    Alert.alert('刪除這次試穿結果？', '', [
+    showDialog('刪除這次試穿結果？', '', [
       { text: '取消', style: 'cancel' },
       {
         text: '刪除',

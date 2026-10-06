@@ -1,10 +1,9 @@
-import { useVideoPlayer, type VideoThumbnail } from 'expo-video';
+import { useVideoPlayer } from 'expo-video';
 import { useEffect, useState } from 'react';
 
-export type FramesState =
-  | { status: 'idle' | 'loading' }
-  | { status: 'ready'; frames: VideoThumbnail[]; durationSec: number }
-  | { status: 'error'; message: string };
+import type { FramesState } from './frameTypes';
+
+export type { FramesState } from './frameTypes';
 
 /**
  * Samples `count` evenly spaced frames from a video so the turntable can scrub through them
