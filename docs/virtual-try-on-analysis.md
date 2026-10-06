@@ -200,6 +200,64 @@
 
 ---
 
+## 模型規格比較表（換衣引擎與決策模型）
+
+> 價格查詢日期 2026-10-06，以官方定價頁或主要 API 平台為準。「估」＝依公開數據推算，非官方報價。
+
+### A. 即時影片試穿（像照鏡子，鏡頭畫面持續換衣）
+| 項目 | Decart Lucy VTON 3.5（即時） | Krea Realtime 14B | 2D AR 疊圖（MediaPipe 姿勢＋貼圖） |
+|---|---|---|---|
+| 開源／閉源 | **閉源**，只能呼叫 API（官方或 fal.ai） | 開源權重，**CC BY-NC-SA（不可商用）** | 開源（MediaPipe Apache-2.0） |
+| 跑在哪 | Decart 雲端 GPU | 自架，建議 40GB+ VRAM（H100／B200） | **手機／瀏覽器本機** |
+| 費用 | **$0.02／秒**（$1.2／分鐘）；fast 模式 $0.04／秒 | GPU 租用費（H100 約數美元／小時，估） | 幾乎 0 |
+| 速度 | 720p 連續串流；換衣指令約 0.3–0.5 秒生效（影片觀察） | B200 上 11 fps（4 步） | 30 fps 以上 |
+| 能吃商品圖嗎 | ✅ 參考圖＋文字 prompt | ❌ 只有文字／影片轉影片，無衣服參考圖 | ✅ 但要先去背、對齊 |
+| 優勢 | 目前唯一現成可商用的即時 VTON；有布料擺動、背面生成 | 可自架、可研究 | 免費、零延遲、離線可用、隱私最好 |
+| 劣勢 | 貴、要排隊、依賴單一供應商、模型大小未公開 | 不能商用、不是為試穿設計、硬體門檻極高 | 很假：沒有皺褶垂墜，衣服像貼紙 |
+| 誰在用 | ③ Anywear；① @gaopei_（推論）；② Drape demo 的 mirror（推論） | — | 早期 Snap／IG 濾鏡 |
+
+### B. 靜態圖片試穿（上傳一張照片 → 數秒後出一張圖）
+| 項目 | Google Vertex AI Virtual Try-On | FASHN API v1.6 | Kling Kolors VTON v1.5 | Decart Lucy VTON 3.5（影片批次） |
+|---|---|---|---|---|
+| 開源／閉源 | 閉源 API | 閉源 API | 閉源 API（fal 等平台） | 閉源 API |
+| 費用 | **$0.06／張** | **$0.075／張**（量大最低約 $0.049）；Max 版 $0.30／張 | **約 $0.07／張** | **$0.04／生成秒**（8 秒影片＝$0.32） |
+| 速度 | 數秒（官方未公開） | 5–17 秒；Max 約 50 秒 | 數秒～十多秒 | 非同步，需等待 |
+| 優勢 | 大廠穩定、Google 購物同一套技術 | 服飾專用、細節好、有量價 | 便宜、易用 | 可「拍一次影片、換商品重算」（① 作者的做法） |
+| 劣勢 | 只有圖片、要綁 GCP | 單張成本最高 | 平台／地區依賴 | 比即時貴一倍、非即時 |
+
+### C. 開源可自架的圖片試穿模型
+| 項目 | FASHN VTON v1.5 | CatVTON | IDM-VTON | Leffa |
+|---|---|---|---|---|
+| 授權 | **Apache-2.0（可商用）** | CC BY-NC-SA（不可商用） | CC BY-NC-SA（不可商用） | MIT（可商用，但需確認訓練資料條款） |
+| 參數量 | 972M | 899M | 較大（雙 UNet） | — |
+| 硬體 | 消費級 GPU | **< 8GB VRAM** | 約 16GB 以上（估） | 約 8–24GB（估） |
+| 單張時間 | 數秒（消費級 GPU） | 約 11 秒（A100） | 約 17 秒 | 約十多秒 |
+| 單張成本（估） | 約 $0.005（自架 GPU 攤提） | 同左 | 同左 | 同左 |
+| 優勢 | 唯一可商用又好用；不用 mask、不用 prompt | 最輕、最好上手 | 花紋材質還原最好 | 授權寬 |
+| 劣勢 | 要自己維運 GPU | 不可商用 | 不可商用、較慢 | 品質不如前者 |
+
+### D. 決策層（挑衣服，不負責畫面）
+| 項目 | Jev（TypeSafe System One） | 一般 LLM（例如 Claude／GPT 系列） |
+|---|---|---|
+| 開源／閉源 | 閉源 API | 閉源 API（亦有開源模型可自架） |
+| 費用 | 輸入 $0.042／百萬 token、輸出免費 → ② 實測約 **$0.0011／次** | 每次約 $0.01–0.1（依模型與 token，估） |
+| 速度 | 70–500ms／次；② 一句話實際 1.2–1.5 秒（兩次呼叫） | 數秒 |
+| 優勢 | 快、便宜、回傳機率，適合即時互動 | 會解釋理由、能聊天、能多步推理 |
+| 劣勢 | 不會解釋、只能從選項裡挑 | 慢、貴，不適合每句話即時呼叫 |
+
+### E. 換算成「一次體驗」的成本
+| 情境 | 用的引擎 | 單次成本 |
+|---|---|---|
+| ① 店家 8 秒即時試穿 | Lucy VTON 即時 $0.02／秒 | **約 $0.16／次**；每人 5 次上限 ≈ $0.80 |
+| ③ Anywear 試穿 1 分鐘 | Lucy VTON 即時 | **約 $1.20／分鐘**（所以要排隊、$1.99 跳過排隊） |
+| ② 38 秒語音換裝 | Jev 決策 ＋ 即時換裝 | Jev 約 $0.011 ＋ 換裝約 $0.76（若用 Lucy，推論） |
+| 一張靜態試穿圖 | Google／FASHN／Kling API | $0.06–0.075 |
+| 一張靜態試穿圖 | 自架 FASHN VTON v1.5 | 約 $0.005（估，需自行維運） |
+
+**結論：不一定要用 Decart。** 要「即時影片、像照鏡子」的話，目前可商用的現成方案幾乎只有 Decart（閉源、雲端、按秒計費）。如果「拍照、等幾秒看結果」就夠，選擇很多，而且便宜 10–20 倍以上；FASHN VTON v1.5 甚至可以開源自架、合法商用。
+
+---
+
 ## 技術路線整理：虛擬試穿有哪幾種做法
 
 | 路線 | 代表 | 原理 | 優點 | 缺點 |
@@ -231,3 +289,9 @@
 - Jev 介紹（DigitalOcean）：https://www.digitalocean.com/resources/articles/what-is-jev
 - Drape App：https://apps.apple.com/us/app/drape-app/id6747585294
 - AI 虛擬試穿支援 SHOPLINE（Genlook，Yahoo 新聞）：https://tw.stock.yahoo.com/news/ai%E8%99%9B%E6%93%AC%E8%A9%A6%E7%A9%BF%E6%8A%80%E8%A1%93%E5%86%8D%E9%80%B2%E5%8C%96-%E9%9B%BB%E5%95%86%E6%9C%8D%E9%A3%BE10%E7%A7%92%E4%B8%8A%E8%BA%AB%E6%8F%90%E5%8D%87%E8%B3%BC%E7%89%A9%E8%BB%8A%E8%BD%89%E6%8F%9B-025138267.html
+- Decart 定價：https://docs.platform.decart.ai/getting-started/pricing
+- Google Vertex AI 定價（Virtual Try-On）：https://cloud.google.com/vertex-ai/generative-ai/pricing
+- FASHN API：https://fashn.ai/products/api
+- Kling Kolors Virtual Try-On（fal）：https://fal.ai/models/fal-ai/kling/v1-5/kolors-virtual-try-on/llms.txt
+- 開源 VTON 模型比較（FASHN blog）：https://fashn.ai/blog/comparing-the-top-4-open-source-virtual-try-on-viton-models
+- Krea Realtime 14B：https://github.com/krea-ai/realtime-video
